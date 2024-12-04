@@ -27,13 +27,13 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY') 
+# SECRET_KEY desde el archivo .env
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [env('ALLOWED_HOSTS')]
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 print(ALLOWED_HOSTS)
 
 
@@ -86,11 +86,14 @@ WSGI_APPLICATION = 'mymovies.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',  # Cambiar a PostgreSQL
+        'NAME': 'dbmovies_final',  # Nombre de la base de datos
+        'USER': 'django',  # Usuario de la base de datos
+        'PASSWORD': 'master',  # Contraseña del usuario
+        'HOST': 'localhost',  # Host de la base de datos
+        'PORT': '5432',  # Puerto de la base de datos, por defecto es 5432
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
