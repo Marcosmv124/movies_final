@@ -8,7 +8,7 @@
           <div class="w-full p-1 md:p-2">
             <img
               class="block h-full  w-full rounded-lg object-cover object-center"
-              src="{{movie.poster_path}}" alt="{{movie.title}}" />
+              src="https://image.tmdb.org/t/p/w600_and_h900_bestv2/{{movie.poster_path}}" alt="{{movie.title}}" />
           </div>
       </div>
       <div class="bg-gray-50 px-4 py-4 sm:px-6">
@@ -31,10 +31,13 @@
               -
               {% endif %}
               {%endfor%}  </p>
-          <div class="flex mt-2">
-            <a class="pl-5 text-blue-600 text-sm" href="#">reviews</a> 
-            <a class="pl-5 text-red-600 text-sm" href="#">like</a> 
-          </div> 
+              <div class="flex mt-2">
+                {% if user.is_authenticated %}
+                <a class="pl-5 text-blue-600 text-sm"   
+                 hx-get="/movies/movie_review/add/{{movie.id}}" hx-target="body" hx-swap="beforeend"  href="#">reviews</a> 
+                 {% endif %}
+                <a class="pl-5 text-red-600 text-sm" href="#">like</a> 
+              </div> 
             
             <h1 class="mt-5 text-gray-600 text-base  pl-5 font-semibold">Overview</h1>
             <p class="mt-2 pl-5 text-gray-500 text-sm font-normal font-sans">{{ movie.overview }}</p>
@@ -44,10 +47,22 @@
               {{c}} {% if not forloop.last %} - {% endif %}
               {%endfor%}  
               </p> 
+           <p class="block overflow-hidden mt-6 mb-3
+                        text-ellipsis dark:text-gray-200 text-xl font-bold"> Reseñas: </p>
+            <div hx-trigger="listChanged from:body" hx-get="{% url 'movie_reviews' movie.id  %}" hx-target="this" >
+           
+            
+            {% include "movies/reviews.html" %}
+            
+                  
             </div>
+ 
+          
+          </div>
+        
+            
       </div>
     </div>
  </div>
 </article>
-
 {% endblock content %}

@@ -31,7 +31,6 @@ def add_movie(movie_id):
     conn = psycopg2.connect("dbname=dbmovies_final user=postgres password=1234")
     cur = conn.cursor()
 
-
     sql = 'SELECT * FROM movies_movie WHERE title = %s'
     cur.execute(sql, (m['title'],))
     movie_exists = cur.fetchall()
