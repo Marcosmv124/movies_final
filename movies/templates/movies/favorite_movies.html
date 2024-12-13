@@ -1,0 +1,36 @@
+{% extends "movies/base.html" %}
+
+{% block content %}
+  <div class="container mx-auto px-5 py-2 lg:px-32 lg:pt-12">
+    <h1 class="text-2xl font-semibold mb-4">Mis Películas Favoritas</h1>
+
+    {% if favorite_movies %}
+      <div id="artworks-container" class="-m-1 flex flex-wrap md:-m-2">
+        {% for movie in favorite_movies %}
+          <div class="flex w-1/4 flex-wrap pt-3">
+            <div class="w-full p-1 md:p-2 group relative">
+              <!-- Imagen convertida en botón -->
+              <a href="{% url 'movie_detail' movie.id %}" class="block relative">
+                <img
+                  class="block h-full w-full rounded-lg object-cover object-center transition-transform duration-300 group-hover:scale-110"
+                  src="https://media.themoviedb.org/t/p/w300_and_h450_bestv2/{{ movie.poster_path }}"
+                  alt="{{ movie.title }}" />
+              </a>
+            </div>
+            <div class="mt-2 text-center">
+              <a href="{% url 'movie_detail' movie.id %}" class="block text-sky-600 font-bold transition-all duration-300 group-hover:text-sky-800">
+                {{ movie.title|truncatechars_html:40 }}
+              </a>
+              <a href="#" class="block pl-5">
+                <span class="text-gray-400 text-sm font-thin">{{ movie.release_date }}</span>
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No tienes películas favoritas aún.</p>
+    {% endif %}
+  </div>
+{% endblock %}
+

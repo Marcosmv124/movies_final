@@ -4,66 +4,47 @@
   <head>
     <meta charset="utf-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <link href="{% static 'output.css' %}" rel="stylesheet" />
+    <!--<link href="{% static 'output.css' %}" rel="stylesheet" />-->
     <script src="https://cdn.tailwindcss.com"></script>
     {% block head %}
-
     {% endblock head %}
     <title> La casa de las peliculas </title>
-
-      <script>
-      /*to prevent Firefox FOUC, this must be here*/
-        let FF_FOUC_FIX;
-      </script>
-     <style>
-
-        
-      </style>
+    <link rel="icon" href="/static/movies/OIP.jpg" type="image/jpeg">
+    <script>
+      /* To prevent Firefox FOUC, this must be here */
+      let FF_FOUC_FIX;
+    </script>
   </head>
 
-  <body class="bg-white dark:bg-slate-900" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <body class="bg-black text-[#00ffea] hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="flex flex-col min-h-screen">
     {% block header %}
       {% include "movies/header.html" %} 
     {% endblock header %}
 
-
-    {% block content %}
-
-
-
-    {% endblock content %}
+    <!-- Contenido principal -->
+    <main class="flex-grow">
+      {% block content %}
+      {% endblock content %}
+    </main>
 
    
-
-
-    {% block footer%}
-<footer class="bg-white">
-  <div class="mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8">
-    <nav class="-mb-6 columns-2 sm:flex sm:justify-center sm:space-x-12" aria-label="Footer">
-      <div class="pb-6">
-        <a href="#" class="text-sm leading-6 text-gray-600 hover:text-gray-900">About</a>
+    {% block footer %}
+    <footer class="bg-black py-4 mt-auto">
+      <div class="mx-auto max-w-7xl px-6 sm:px-8 flex justify-between items-center">
+        <nav class="flex space-x-8" aria-label="Footer">
+          <a href="#" class="text-sm">Inicio</a>
+          <a href="#" class="text-sm">ITT SISTEMAS</a>
+          <a href="#" class="text-sm">Contacto</a>
+        </nav>
+        <p class="mt-2 text-xs">&copy; 2024 Diciembre. Marcos Martinez Valdez, FERNANDA, JASSIEL</p>
       </div>
-      <div class="pb-6">
-        <a href="" class="text-sm leading-6 text-gray-600 hover:text-gray-900">GitHub</a>
-      </div>
-      <div class="pb-6">
-        <a href="" class="text-sm leading-6 text-gray-600 hover:text-gray-900"> wikiart.org </a>
-      </div>
-    </nav>
-   
-    <p class="mt-10 text-center text-xs leading-5 text-gray-500">&copy; 2024 Diciembre. Marcos Martinez Valdez</p>
-  </div>
-</footer>
-
+    </footer>
     {% endblock footer %}
 
-  <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
-  <script src="https://unpkg.com/htmx.org@1.8.5" integrity="sha384-7aHh9lqPYGYZ7sTHvzP1t3BAfLhYSTy9ArHdP3Xsr9/3TlGurYgcPBoFmXX2TX/w" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
+    <script src="https://unpkg.com/htmx.org@1.8.5" integrity="sha384-7aHh9lqPYGYZ7sTHvzP1t3BAfLhYSTy9ArHdP3Xsr9/3TlGurYgcPBoFmXX2TX/w" crossorigin="anonymous"></script>
 
-  {% block scripts %}
-
-  {% endblock scripts %}
-
-</body>
+    {% block scripts %}
+    {% endblock scripts %}
+  </body>
 </html>

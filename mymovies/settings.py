@@ -117,7 +117,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es'
 
 TIME_ZONE = 'UTC'
 
@@ -132,8 +132,10 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
-    '/home/ubuntu/ProgWeb/Tutoriales/css'
+    #BASE_DIR / "static",
+   # '/home/ubuntu/ProgWeb/Tutoriales/css'
+    #'/home/marcosmv/repositorios/peliculas/static',  # Verifica que esta ruta exista
+    #'/home/ubuntu/ProgWeb/Tutoriales/css',  # Verifica que esta ruta exista
 ]
 
 # Default primary key field type

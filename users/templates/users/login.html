@@ -16,22 +16,22 @@
 
     <form id="login_form" class="px-8 pt-3 pb-8" role="form" method="post" action="{% url 'login' %}">
       {% csrf_token %}
-      <!-- Username -->
+    
       <div class="block mt-3 text-gray-700 dark:text-slate-300">
-        <input type="text" name="username" placeholder="Usuario" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="text" name="username" placeholder="Usuario" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white opacity-90 focus:opacity-100">
       </div>
       <div class="block mt-3 text-gray-700 dark:text-slate-300">
-        <input type="password" name="password" placeholder="Contraseña" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="password" name="password" placeholder="Contraseña" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-800 dark:text-white opacity-90 focus:opacity-100">
       </div>
       <div class="mt-3">
         <a class="font-medium text-blue-600 dark:text-blue-500 hover:underline" href="/accounts/password_reset">¿Se te olvidó tu contraseña?</a>
       </div>
       <div class="mt-5 font-medium text-gray-500 dark:text-slate-300">
         ¿Aún no te has registrado? 
-        <a href="/accounts/register" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Regístrate</a>
+        <a href="/users/register" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Regístrate</a>
       </div>
       <div>
-        <button type="submit" class="mt-6 w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+        <button type="submit" id="login_button" class="mt-6 w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
           Inicia Sesión
         </button>
       </div>
@@ -39,4 +39,26 @@
   </div>
 </div>
 
+<script>
+  document.getElementById("login_form").addEventListener("submit", function(event) {
+    // Prevenir el envío inmediato del formulario
+    event.preventDefault();
+
+    var loginButton = document.getElementById("login_button");
+    // Cambiar el texto del botón a "Cargando..."
+    loginButton.textContent = "Cargando...";
+    // Desactivar el botón para prevenir múltiples clics
+    loginButton.disabled = true;
+
+    // Simular el envío del formulario con un retraso (se puede reemplazar por el envío real)
+    setTimeout(function() {
+      // Enviar el formulario una vez que se "carga" la acción
+      document.getElementById("login_form").submit();
+    }, 2000); // Cambia el tiempo si es necesario
+  });
+</script>
+
 {% endblock content %}
+
+
+

@@ -1,41 +1,53 @@
-<div id="modal" _="on closeModal or listChanged remove me" 
-    class="relative z-10" role="dialog" aria-modal="true">
-  <div class="fixed inset-0 hidden bg-gray-500 bg-opacity-75 transition-opacity md:block"></div>
-        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-
-<div class="flex w-full mx-auto transform 
-            text-left text-base transition 
-            md:my-8 md:max-w-2xl md:px-4 lg:max-w-4xl">
-         
-        <div class="relative flex w-full 
-                items-center overflow-hidden bg-white 
-                px-4 pb-8 pt-14 shadow-2xl sm:px-6 sm:pt-8 md:p-6 lg:p-8">
+<div id="modal" _="on closeModal or listChanged remove me" class="fixed inset-0 z-[1000] flex items-center justify-center bg-purple-800 bg-opacity-75" role="dialog" aria-modal="true">
+  <div class="relative w-full max-w-lg bg-gray-900 text-white shadow-xl rounded-lg">
+      <form hx-post="/movies/movie_review/add/{{ movie.id }}/" hx-target="#modal" hx-swap="outerHTML" class="p-6">
+          {% csrf_token %}
+          <p class="mb-4 text-xl font-bold text-purple-400">Agrega una Reseña</p>
           
-        <form hx-post="/movies/movie_review/add/{{movie.id}}/" hx-target="#modal" hx-swap="outerHTML" 
-            class="bg-white  w-full  md:col-span-2">
-            <div class="px-4 py-3 sm:p-8">
-                <p class="block overflow-hidden
-                        text-ellipsis mb-4 dark:text-gray-200 text-xl font-bold"> Agrega una Reseña  </p>
-             <div class="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                   <div class="sm:col-span-4">
-                            {{movie_review_form}}
-                          
-                            <div class="text-sm font-medium text-red-600">
-                                {{ form.description.errors }}
-                            </div>
-                </div>
-            </div>
-         <div class="mt-6 mr-3 flex items-center justify-end gap-x-6">
-            <button type="button"  
-                    _="on click trigger closeModal" 
-                    class="text-sm font-semibold leading-6 text-gray-900">Cancelar</button>
-            <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Guardar</button>
+          <!-- Campo para la calificación con un rango de 1 a 100 -->
+          <div class="mb-4">
+              <label for="rating" class="block mb-2 font-semibold text-purple-300">Rating:</label>
+              <input 
+                  type="number" 
+                  id="rating" 
+                  name="rating" 
+                  class="p-1 bg-gray-800 border border-purple-500 rounded-md text-white focus:ring-2 focus:ring-purple-500" 
+                  min="1" 
+                  max="100" 
+                  required 
+                  style="width: 100px;">
+          </div>             
+          
+          <!-- Campo para el título de la reseña -->
+          <div class="mb-4">
+              <label for="title" class="block mb-2 font-semibold text-purple-300">Title:</label>
+              <input type="text" id="title" name="title" class="w-full p-2 bg-gray-800 border border-purple-500 rounded-md text-white focus:ring-2 focus:ring-purple-500" required>
           </div>
-        </form>
-
-
-            </div>
-        </div>
-    </div>
-        </div>
+          
+          <!-- Campo para el texto de la reseña -->
+          <div class="mb-4">
+              <label for="review" class="block mb-2 font-semibold text-purple-300">Review:</label>
+              <textarea id="review" name="review" class="w-full p-2 bg-gray-800 border border-purple-500 rounded-md text-white focus:ring-2 focus:ring-purple-500" rows="4" required></textarea>
+          </div>
+          
+          <!-- Botones de acción -->
+          <div class="flex items-center justify-end gap-4">
+              <button type="button" _="on click trigger closeModal" class="text-sm font-semibold text-purple-400 hover:text-purple-500">
+                  Cancelar
+              </button>
+              <button type="submit" class="px-4 py-2 text-sm font-semibold text-gray-900 bg-purple-400 rounded-md hover:bg-purple-500 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-purple-500">
+                  Guardar
+              </button>
+          </div>
+      </form>
+  </div>
 </div>
+
+  
+
+  
+  
+
+  
+
+

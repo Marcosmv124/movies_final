@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+
+
 # Create your models here.
 
 
@@ -35,8 +37,13 @@ class Movie(models.Model):
     poster_path = models.URLField(blank=True, null=True)
     genres = models.ManyToManyField(Genre)
     credits = models.ManyToManyField(Person, through='MovieCredit')
+    likes = models.ManyToManyField(User, related_name="liked_movies", blank=True)#Like
+    
     def __str__(self):
         return f'{self.title} {self.release_date}'
+    
+    # Añade este campo al modelo 
+   # User.add_to_class('liked_movies', models.ManyToManyField(Movie, related_name='liked_by'))
 
 class MovieCredit(models.Model):
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
@@ -51,5 +58,8 @@ class MovieReview(models.Model):
                                                           MaxValueValidator(100)])
     review = models.TextField(blank=True)
     title  = models.TextField(blank=False, null=False, default="Reseña sin titulo")
+
+
+
 
     
