@@ -1,144 +1,160 @@
 import os
+import sys
 import environ
 import requests
 import psycopg2
-from  datetime import datetime, date, timezone 
-import sys
+from datetime import datetime, date, timezone
 
 
-def add_movie(movie_id):
-    env = environ.Env()
-    environ.Env.read_env('.env')
-    print('API_KEY: ', env('API_KEY'))
-    print('API_TOKEN: ', env('API_TOKEN'))
+# ---------- ENV ----------
+env = environ.Env()
+environ.Env.read_env(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
-    '''
-    url --request GET \
-         --url 'https://api.themoviedb.org/3/movie/76341?language=en-US' \
-         --header 'Authorization: Aasdfqwer' \
-         --header 'accept: application/json'
-    '''
-    headers = {
-        "accept": "application/json",
-        "Authorization": f"Bearer {env('API_TOKEN')}"}
+HEADERS = {
+    "accept": "application/json",
+    "Authorization": f"Bearer {env('API_TOKEN')}"
+}
 
 
+# ---------- DB ----------
+def get_connection():
+    return psycopg2.connect(
+        dbname="dbmovies_final",
+        user="django",
+        password="master",
+        host="localhost",
+        port="5432"
+    )
 
-    r = requests.get(f'https://api.themoviedb.org/3/movie/{movie_id}?language=en-US', headers=headers) 
-    print(r.json())
-    m = r.json()
 
-    conn = psycopg2.connect("dbname=dbmovies_final user=postgres password=1234")
+# ---------- MAIN LOGIC ----------
+def add_movie(movie_id, conn):
     cur = conn.cursor()
 
-    sql = 'SELECT * FROM movies_movie WHERE title = %s'
-    cur.execute(sql, (m['title'],))
-    movie_exists = cur.fetchall()
+    # --- MOVIE ---
+    r = requests.get(
+        f"https://api.themoviedb.org/3/movie/{movie_id}?language=en-US",
+        headers=HEADERS
+    )
+    m = r.json()
 
-    print(movie_exists)
+    if "title" not in m:
+        print(f"❌ Error TMDB con id {movie_id}")
+        return
 
-    r = requests.get(f'https://api.themoviedb.org/3/movie/{movie_id}/credits?language=en-US', headers=headers) 
+    cur.execute(
+        "SELECT id FROM movies_movie WHERE tmdb_id = %s",
+        (movie_id,)
+    )
+    if cur.fetchone():
+        print(f"⏭️  {m['title']} ya existe, saltando")
+        return
+
+    # --- CREDITS ---
+    r = requests.get(
+        f"https://api.themoviedb.org/3/movie/{movie_id}/credits?language=en-US",
+        headers=HEADERS
+    )
     credits = r.json()
 
-
-    actors = [( actor['name'], actor['known_for_department']) for actor in credits['cast'][:10]] 
-    crew =   [(   job['name'], job['job']) for job in credits['crew'][:15]]
-
+    actors = [(a["name"], a["known_for_department"]) for a in credits["cast"][:10]]
+    crew = [(c["name"], c["job"]) for c in credits["crew"][:15]]
     credits_list = actors + crew
 
+    # --- JOBS ---
+    jobs = {job for _, job in credits_list}
+    cur.execute("SELECT name FROM movies_job WHERE name IN %s", (tuple(jobs),))
+    existing_jobs = {row[0] for row in cur.fetchall()}
 
+    cur.executemany(
+        "INSERT INTO movies_job (name) VALUES (%s)",
+        [(j,) for j in jobs if j not in existing_jobs]
+    )
 
+    # --- PERSONS ---
+    persons = {person for person, _ in credits_list}
+    cur.execute("SELECT name FROM movies_person WHERE name IN %s", (tuple(persons),))
+    existing_persons = {row[0] for row in cur.fetchall()}
 
-    jobs = [job for person, job in credits_list]
-    jobs = set(jobs)
-    print(jobs)
+    cur.executemany(
+        "INSERT INTO movies_person (name) VALUES (%s)",
+        [(p,) for p in persons if p not in existing_persons]
+    )
 
-    sql = 'SELECT * FROM movies_job WHERE name IN %s'
-    cur.execute(sql, (tuple(jobs),))
-    jobs_in_db = cur.fetchall()
+    # --- GENRES ---
+    genres = [g["name"] for g in m["genres"]]
+    cur.execute("SELECT name FROM movies_genre WHERE name IN %s", (tuple(genres),))
+    existing_genres = {row[0] for row in cur.fetchall()}
 
-    jobs_to_create = [(name,) for name in  jobs if name not in [name for id, name in jobs_in_db]]
-    sql = 'INSERT INTO movies_job (name) values  (%s)'
-    cur.executemany(sql, jobs_to_create) 
+    cur.executemany(
+        "INSERT INTO movies_genre (name) VALUES (%s)",
+        [(g,) for g in genres if g not in existing_genres]
+    )
 
+    # --- INSERT MOVIE ---
+    release_date = datetime.combine(
+        date.fromisoformat(m["release_date"]),
+        datetime.min.time(),
+        tzinfo=timezone.utc
+    )
 
-    persons = [person for person, job in credits_list]
-    persons = set(persons)
-    print(persons)
-    sql = 'SELECT * FROM movies_person WHERE name IN %s'
-    cur.execute(sql, (tuple(persons),))
-    persons_in_db = cur.fetchall()
+    cur.execute(
+        """
+        INSERT INTO movies_movie
+        (title, overview, release_date, running_time, budget, tmdb_id, revenue, poster_path)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id
+        """,
+        (
+            m["title"],
+            m["overview"],
+            release_date,
+            m["runtime"],
+            m["budget"],
+            movie_id,
+            m["revenue"],
+            m["poster_path"]
+        )
+    )
 
-    persons_to_create = [(name,) for name in  persons if name not in [name for id, name in persons_in_db]]
-    sql = 'INSERT INTO movies_person (name) values  (%s)'
-    cur.executemany(sql, persons_to_create) 
+    movie_db_id = cur.fetchone()[0]
 
+    # --- MOVIE ↔ GENRES ---
+    cur.execute(
+        """
+        INSERT INTO movies_movie_genres (movie_id, genre_id)
+        SELECT %s, id FROM movies_genre WHERE name IN %s
+        """,
+        (movie_db_id, tuple(genres))
+    )
 
-    genres = [  d['name']  for  d in m['genres']] 
-    print(genres)
-
-    sql = 'SELECT * FROM movies_genre WHERE name IN %s'
-    cur.execute(sql, (tuple(genres),))
-    genres_in_db = cur.fetchall()
-
-    genres_to_create = [(name,) for name in  genres if name not in [name for id, name in genres_in_db]]
-    sql = 'INSERT INTO movies_genre (name) values  (%s)'
-    cur.executemany(sql, genres_to_create) 
-
-
-
-    date_obj = date.fromisoformat(m['release_date']) 
-    date_time = datetime.combine(date_obj, datetime.min.time())
-
-    sql = '''INSERT INTO movies_movie 
-             (title,
-              overview,
-              release_date,
-              running_time,
-              budget,
-              tmdb_id,
-              revenue,
-              poster_path) values  (%s, %s, %s, %s, %s, %s, %s, %s);'''
-
-    movie_tuple = (m['title'], m['overview'], date_time.astimezone(timezone.utc), m['runtime'], 
-                   m['budget'] , movie_id, m['revenue'], m['poster_path'] )
-    print(movie_tuple)
-
-
-    sql = '''INSERT INTO movies_movie 
-             (title,
-              overview,
-              release_date,
-              running_time,
-              budget,
-              tmdb_id,
-              revenue,
-              poster_path) values  (%s, %s, %s, %s, %s, %s, %s, %s);'''
-
-    movie_tuple = (m['title'], m['overview'], date_time.astimezone(timezone.utc), m['runtime'], 
-                   m['budget'] , movie_id, m['revenue'], m['poster_path'] )
-    print(movie_tuple)
-    cur.execute(sql, movie_tuple)
-
-     
-    sql = '''INSERT INTO movies_movie_genres (movie_id, genre_id)
-             SELECT (SELECT id FROM movies_movie WHERE title = %s) as movie_id, id as genre_id 
-             FROM movies_genre 
-             WHERE name IN %s'''
-    cur.execute(sql, (m['title'], tuple(genres),))
-
-
-    print(credits_list)
-    for credit in credits_list:
-        sql = '''INSERT INTO movies_moviecredit (movie_id, person_id, job_id)
-                 SELECT id,
-                 (SELECT id FROM movies_person WHERE name = %s)  as person_id,
-                 (SELECT id FROM movies_job WHERE name = %s)  as job_id
-                 FROM movies_movie 
-                 WHERE title = %s'''
-        cur.execute(sql, (credit[0],credit[1], m['title'],))
+    # --- CREDITS ---
+    for person, job in credits_list:
+        cur.execute(
+            """
+            INSERT INTO movies_moviecredit (movie_id, person_id, job_id)
+            VALUES (
+                %s,
+                (SELECT id FROM movies_person WHERE name = %s),
+                (SELECT id FROM movies_job WHERE name = %s)
+            )
+            """,
+            (movie_db_id, person, job)
+        )
 
     conn.commit()
+    print(f"✅ Insertada: {m['title']}")
 
+
+# ---------- ENTRYPOINT ----------
 if __name__ == "__main__":
-    add_movie(int(sys.argv[1]))
+    conn = get_connection()
+
+    for movie_id in sys.argv[1:]:
+        try:
+            add_movie(int(movie_id), conn)
+        except Exception as e:
+            conn.rollback()
+            print(f"❌ Error con ID {movie_id}: {e}")
+
+    conn.close()
